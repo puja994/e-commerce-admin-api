@@ -8,6 +8,6 @@ POST http://localhost:8000/api/v1/login
 Content-Type: application/json
 
 {
-    "email": "puja@gmail.com",
-    "password": "hghkj"
+    "email": "puja@gmail",
+    "password": "1123"
 }

@@ -1,3 +1,6 @@
+import dotenv from 'dotenv'
+dotenv.config()
+
 import express from 'express'
 const app = express()
 
@@ -10,6 +13,9 @@ app.use(cors())
 app.use(morgan("tiny"))
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
+
+import mongoClient from './config/db.js'
+mongoClient()
 
 import loginRouter from './routers/login.router.js'
 
@@ -31,6 +37,7 @@ app.use((req, res, next)=>{
 
 //handle error
 import {handleError} from './utils/errorHandler.js'
+
 app.use((error,req,res,next)=>{
 handleError(error, res)
 })
