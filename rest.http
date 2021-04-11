@@ -11,3 +11,16 @@ Content-Type: application/json
     "email": "puja@gmail",
     "password": "1123"
 }
+###category zone
+###FETCH ALL CATEGORY
+GET  http://localhost:8000/api/v1/category
+
+###addd category
+
+POST  http://localhost:8000/api/v1/category
+Content-Type: application/json
+
+{
+    "email": "root category",
+    "password": "123"
+}

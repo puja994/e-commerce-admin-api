@@ -18,11 +18,13 @@ import mongoClient from './config/db.js'
 mongoClient()
 
 import loginRouter from './routers/login.router.js'
+import categoryRouter from './routers/category.router.js'
 
 
 //APIS use routers
 
 app.use('/api/v1/login', loginRouter)
+app.use('/api/v1/category', categoryRouter)
 
 app.get('/', (req, res) => {
   res.send('Hello World')
