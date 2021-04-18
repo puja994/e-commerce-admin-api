@@ -15,12 +15,38 @@ Content-Type: application/json
 ###FETCH ALL CATEGORY
 GET  http://localhost:8000/api/v1/category
 
+###fetch single product
+GET  http://localhost:8000/api/v1/product/607b8c843f5d75c3f64cbd1f
+status
+
+
+###fetch all products
+GET  http://localhost:8000/api/v1/product
+
 ###addd category
 
 POST  http://localhost:8000/api/v1/category
 Content-Type: application/json
 
 {
-    "email": "root category",
-    "password": "123"
+    "name": "root category",
+    "parentCat": 0
 }
+
+DELETE  http://localhost:8000/api/v1/category
+
+###products apis
+### add new product
+POST  http://localhost:8000/api/v1/product
+Content-Type: application/json
+
+{
+    "name": "root category",
+    "price": 0
+}
+###fetch single product
+PUT  http://localhost:8000/api/v1/product
+Content-Type: application/json
+
+
+    {"_id": "607b6f80cc27d5bfdc3e94a8"}
