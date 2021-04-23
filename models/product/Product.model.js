@@ -12,7 +12,7 @@ export const insertProduct =  prodObj =>{
     })
 }
 
-export const getProducts =  catObj =>{
+export const getProducts =  () =>{
     return new Promise(async(resolve, reject )=> {
         try{
           const result = await  ProdSchema.find()
@@ -48,3 +48,32 @@ export const getProductById =  _id =>{
         }
     })
 }
+
+export const updateProductById =  ({_id, formDt}) =>{
+    return new Promise(async(resolve, reject )=> {
+        try{
+          const result = await  ProdSchema.findByIdAndUpdate({_id}, 
+            {$set:formDt},{new:true}
+   
+            
+            )
+          resolve(result)
+        }
+        catch(error){
+            reject(error)
+        }
+    })
+}
+
+// export const updateProductById =  ({_id}) =>{
+//     return new Promise(async(resolve, reject )=> {
+//         try{
+//           const result = await  ProdSchema.findByIdAndDelete(_id)
+          
+//           resolve(result)
+//         }
+//         catch(error){
+//             reject(error)
+//         }
+//     })
+// }

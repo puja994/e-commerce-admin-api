@@ -1,8 +1,45 @@
 import express from 'express'
 const router = express.Router()
 import slugify from 'slugify'
-import {insertProduct, deleteProduct, getProducts, getProductById} from '../models/product/Product.model.js'
-import {newProductValidation} from '../middlewares/formValidation.middleware.js'
+import multer from 'multer'
+import {insertProduct, deleteProduct, getProducts, getProductById, updateProductById} from '../models/product/Product.model.js'
+import {newProductValidation, updateProductValidation} from '../middlewares/formValidation.middleware.js'
+
+
+// Multer configuration
+
+const ALLOWED_FILE_TYPE = {
+	"image/png": "png",
+	"image/jpeg": "jpeg",
+	"image/jpg": "jpg",
+};
+
+var storage = multer.diskStorage({
+	destination: function (req, file, cb) {
+		let error = null;
+		const isAllowed = ALLOWED_FILE_TYPE[file.mimetype];
+
+		if (!isAllowed) {
+			error = new Error(
+				"Some of the file types are not allowd, Only images are allowed"
+			);
+			error.status = 400;
+		}
+
+		cb(error, "public/img/product");
+	},
+	filename: function (req, file, cb) {
+		//he there.jpg ==> he-there-4646465.jpg
+		const fileName = slugify(file.originalname.split(".")[0]);
+		const extension = ALLOWED_FILE_TYPE[file.mimetype];
+		const fullFileName = fileName + "-" + Date.now() + "." + extension;
+		cb(null, fullFileName);
+	},
+});
+
+var upload = multer({ storage: storage });
+
+// End Multer configuration
 
 
 router.all("*", (req,res,next)=>{
@@ -23,41 +60,78 @@ router.get("/:_id?", async (req,res)=>{
         throw error
     }
 })
+router.post(
+	"/",
+	upload.array("images", 5),
+	newProductValidation,
+	async (req, res) => {
+		try {
+			const addNewProd = {
+				...req.body,
+				slug: slugify(req.body.name),
+			};
 
-router.post("/", newProductValidation, async (req,res)=>{
-    console.log(req.body)
-    try{
+			const basePath = `${req.protocol}://${req.get("host")}/img/product/`;
+			const files = req.files;
+			console.log(files);
 
-        const result = await insertProduct(req.body)
-        if(result._id){
-            return res.json({
-                status: "success",
-                message: "product has been added"
-            })
-        }
-        res.json({
-            status: "error",
-            message: "unable to addd product"
-        })
-    }catch(error){
-        throw(error)
+			const images = [];
 
-    }
-})
+			files.map(file => {
+				const imgFullPath = basePath + file.filename;
 
-// router.put("/", async (req,res)=>{
-//     const _id = req.body
-//     try{
-//         const result = await getProductById(_id)
-//         res.json({
-//             status: "success",
-//             message: "here are all products result",
-//             result
-//         })
-//     }catch(error){
-//         throw error
-//     }
-// })
+				images.push(imgFullPath);
+			});
+
+			const result = await insertProduct({
+				...addNewProd,
+				images,
+			});
+			console.log(result);
+
+			if (result._id) {
+				return res.json({
+					status: "success",
+					message: "The product has been added!",
+					result,
+				});
+			}
+
+			res.json({
+				status: "error",
+				message: "Unable to add the product, Please try again later",
+			});
+		} catch (error) {
+			throw error;
+		}
+	}
+);
+
+router.put("/", updateProductValidation, async (req, res) => {
+	const { _id, ...formDt } = req.body;
+	try {
+		const result = await updateProductById({ _id, formDt });
+
+		if (result?._id) {
+			return res.json({
+				status: "success",
+				message: "The product has been updated",
+				result,
+			});
+		}
+
+		res.json({
+			status: "error",
+			message: "Unable to update the product, Please try again later",
+			result,
+		});
+	} catch (error) {
+		throw error;
+	}
+});
+
+
+
 
 router.delete("/", async (req,res)=>{
     //console.log(req.body)
