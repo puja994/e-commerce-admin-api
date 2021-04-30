@@ -1,10 +1,20 @@
-import express from 'express'
-const router = express.Router()
-import slugify from 'slugify'
-import multer from 'multer'
-import {insertProduct, deleteProduct, getProducts, getProductById, updateProductById} from '../models/product/Product.model.js'
-import {newProductValidation, updateProductValidation} from '../middlewares/formValidation.middleware.js'
+import express from "express";
+const router = express.Router();
+import slugify from "slugify";
+import multer from "multer";
 
+import {
+	newProductValidation,
+	updateProductValidation,
+} from "../middlewares/formValidation.middleware.js";
+
+import {
+	insertProduct,
+	getProducts,
+	deleteProduct,
+	getProductById,
+	updateProductById,
+} from "../models/product/Product.model.js";
 
 // Multer configuration
 
@@ -41,25 +51,25 @@ var upload = multer({ storage: storage });
 
 // End Multer configuration
 
+router.all("*", (req, res, next) => {
+	next();
+});
 
-router.all("*", (req,res,next)=>{
-    next()
- })
+router.get("/:_id?", async (req, res) => {
+	const { _id } = req.params;
+	try {
+		const result = _id ? await getProductById(_id) : await getProducts();
 
-router.get("/:_id?", async (req,res)=>{
-    const {_id} = req.params
-    try{
-        const result =  _id ? await getProductById(_id) : await getProducts()
-        
-        res.json({
-            status: "success",
-            message: "here are all products result",
-            result
-        })
-    }catch(error){
-        throw error
-    }
-})
+		res.json({
+			status: "success",
+			message: "Here are all the products",
+			result,
+		});
+	} catch (error) {
+		throw error;
+	}
+});
+
 router.post(
 	"/",
 	upload.array("images", 5),
@@ -107,61 +117,95 @@ router.post(
 	}
 );
 
-router.put("/", updateProductValidation, async (req, res) => {
-	const { _id, ...formDt } = req.body;
+router.put(
+	"/",
+	upload.array("images", 5),
+	updateProductValidation,
+	async (req, res) => {
+		try {
+			const { _id, imgToDelete, ...formDt } = req.body;
+
+			const basePath = `${req.protocol}://${req.get("host")}/img/product/`;
+			const files = req.files;
+			let images = [];
+
+			//new images
+			files.map(file => {
+				const imgFullPath = basePath + file.filename;
+				images.push(imgFullPath);
+			});
+
+			//get images form database and filter them
+			//old images and remove images
+			if (imgToDelete?.length) {
+				const deleteImgSource = imgToDelete.split(",");
+
+				//get the product form database
+				const prod = await getProductById(_id);
+				if (prod.images.length) {
+					const updatingImages = prod.images.filter(
+						imgSource => !deleteImgSource.includes(imgSource)
+					);
+
+					images = [...images, ...updatingImages];
+				}
+			}
+
+			const updateProduct = {
+				...formDt,
+				images,
+			};
+
+			const result = await updateProductById({ _id, updateProduct });
+
+			console.log(result);
+			if (result?._id) {
+				return res.json({
+					status: "success",
+					message: "The product has been updated",
+					result,
+				});
+			}
+
+			res.json({
+				status: "error",
+				message: "Unable to update the product, Please try again later",
+				result,
+			});
+		} catch (error) {
+			throw error;
+		}
+	}
+);
+
+router.delete("/", async (req, res) => {
 	try {
-		const result = await updateProductById({ _id, formDt });
+		if (!req.body) {
+			return res.json({
+				status: "error",
+				message: "Unable to add the product, Please try again later",
+			});
+		}
+
+		const result = await deleteProduct(req.body);
+		console.log(result);
 
 		if (result?._id) {
 			return res.json({
 				status: "success",
-				message: "The product has been updated",
+				message: "The product has been deleted.",
 				result,
 			});
 		}
 
 		res.json({
 			status: "error",
-			message: "Unable to update the product, Please try again later",
-			result,
+			message: "Unable to delete the product, Please try again later",
 		});
 	} catch (error) {
+		console.log(error);
 		throw error;
 	}
 });
-
-
-
-
-router.delete("/", async (req,res)=>{
-    //console.log(req.body)
-    
-    try{
-
-        if(!req.body){
-            return res.json({
-                status: "error",
-                message: "unable to addd product"
-            })
-            
-        }
-    
-
-        const result = await deleteProduct(req.body)
-        if(result._id){
-            return res.json({
-                status: "success",
-                message: "product has been added"
-            })
-        }
-        res.json({
-            status: "error",
-            message: "unable to addd product"
-        })
-    }catch(error){
-        throw(error)
-
-    }
-})
 
 export default router;

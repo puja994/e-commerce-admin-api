@@ -1,32 +1,52 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
-const UserSchema = mongoose.Schema({
-    fname: {
-        type: String,
-        require: true,
-        default: ""
-    },
-    lname: {
-        type: String,
-        require: true,
-        default: ""
-    },
-    email: {
-        type: String,
-        require: true,
-        default: ""
-    },
-    password: {
-        type: String,
-        require: true,
-        default: ""
-    }
-},
-    {
-        timestamp: true,
-    },
+const UserSchema = mongoose.Schema(
+	{
+		fName: {
+			type: String,
+			require: true,
+			default: "",
+		},
+		lName: {
+			type: String,
+			require: true,
+			default: "",
+		},
 
-)
+		role: {
+			type: String,
+			require: true,
+			default: "guest",
+		},
 
-const AdminUsersSchema = mongoose.model("Admin_user", UserSchema)
-export default AdminUsersSchema
+		email: {
+			type: String,
+			require: true,
+			default: "",
+		},
+		password: {
+			type: String,
+			require: true,
+			default: "",
+		},
+		refreshJWT: {
+			token: {
+				type: String,
+				require: true,
+				default: "",
+			},
+			addedAt: {
+				type: Date,
+				require: true,
+				default: Date.now(),
+			},
+		},
+	},
+	{
+		timestamp: true,
+	}
+);
+
+const UsersSchema = mongoose.model("User", UserSchema);
+
+export default UsersSchema;

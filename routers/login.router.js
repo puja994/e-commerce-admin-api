@@ -1,42 +1,49 @@
-import express from 'express'
+import express from "express";
+const router = express.Router();
 
-const router = express.Router()
+import { comparePassword } from "../helpers/bcrypt.helper.js";
+import { createAccessJWT, createRefreshJWT } from "../helpers/jwt.helper.js";
 
-import {loginValidation } from '../middlewares/formValidation.middleware.js'
-import {
-    createUser,
-     getUserByEmailPassword
-    } from '../models/user/User.model.js'
+import { loginValidation } from "../middlewares/formValidation.middleware.js";
+import { getUserByEmail } from "../models/user/User.model.js";
 
-router.all("*", (req,res,next)=>{
-    next()
-})
+router.all("*", (req, res, next) => {
+	next();
+});
 
-const user ={
-    fName: "puja",
-    lName: "bhan",
-    email: "puja@gmail",
-    password: "1123"
-}
-router.post("/", loginValidation, async (req,res)=>{
-    //createUser(user)
+router.post("/", loginValidation, async (req, res) => {
+	try {
+		const { email, password } = req.body;
+		const user = await getUserByEmail(email);
 
-    try{
-        console.log(req.body)
-       const result = await getUserByEmailPassword(req.body)
-       if(result?._id){
-       return res.json({status:"error", message: "login success", result})
-       }
-        res.json({ status: "error", message: "invalid login details"})
+		if (!user?._id) {
+			return res
+				.status(403)
+				.json({ status: "error", message: "Invalid login details" });
+		}
 
-    }catch(error){
-        console.log(error)
-        throw new Error(error.message)
+		const dbHashPass = user.password;
+		const result = await comparePassword(password, dbHashPass);
+		if (!result) {
+			return res.json({ status: "error", message: "Invalid login details" });
+		}
 
-    }
-    
-    
-  
-})
+		const accessJWT = await createAccessJWT(user.email, user._id);
+		const refreshJWT = await createRefreshJWT(user.email, user._id);
 
-export default router
+		user.password = undefined;
+		user.refreshJWT = undefined;
+		res.json({
+			status: "success",
+			message: "login success",
+			user,
+			accessJWT,
+			refreshJWT,
+		});
+	} catch (error) {
+		console.log(error);
+		throw new Error(error.message);
+	}
+});
+
+export default router;
