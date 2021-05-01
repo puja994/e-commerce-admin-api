@@ -19,3 +19,13 @@ export const getAccessJwtByToken = async accessJWT => {
 		return Promise.resolve(false);
 	}
 };
+
+export const deleteAccessJwtByUserId =  userId => {
+	try {
+		const result =  SessionSchema.findOneAndDelete( userId)
+		.then(data=>console.log(data))
+		.catch(error=> console.log(error))
+	} catch (error) {
+		console.log(error);
+	}
+};

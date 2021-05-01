@@ -21,7 +21,7 @@ app.use(express.urlencoded({ extended: false }));
 // parse application/json
 app.use(express.json());
 
-import mongoClient from "../eapi/config/db.js";
+import mongoClient from "../e-commerce-admin-api/config/db.js";
 mongoClient();
 
 // LOAD ROUTERS
@@ -51,7 +51,7 @@ app.use((req, res, next) => {
 });
 
 //handle error
-import { handleError } from "../eapi/utils/errorHandler.js";
+import { handleError } from "../e-commerce-admin-api/utils/errorHandler.js";
 app.use((error, req, res, next) => {
 	handleError(error, res);
 });
@@ -59,5 +59,5 @@ app.use((error, req, res, next) => {
 app.listen(PORT, error => {
 	if (error) console.log(error);
 
-	console.log(`Server is runn at http://localhost:${PORT}`);
+	console.log(`Server is running at http://localhost:${PORT}`);
 });

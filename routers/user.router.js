@@ -6,6 +6,7 @@ import { verifyAccessJwt } from "../helpers/jwt.helper.js";
 import { userAuthorization } from "../middlewares/authorization.middleware.js";
 import { newUserValidation } from "../middlewares/formValidation.middleware.js";
 import { createUser, getUserById } from "../models/user/User.model.js";
+import {deleteAccessJwtByUserId} from '../models/session/Session.model.js'
 
 router.all("*", (req, res, next) => {
 	next();
@@ -77,5 +78,22 @@ router.post("/", newUserValidation, async (req, res) => {
 		throw new Error(error.message);
 	}
 });
-
+router.post('/logout', async(req,res)=>{
+	try{
+		const{_id} = req.body
+		deleteAccessJwtByUserId(_id)
+		deleteRefreshJwtByUserId(_id)
+		//const{accessJWT,refresh} = req.body
+		res.send({
+			status:"success",
+			message: "you are logged out"
+		})
+	}
+	catch(error){
+		res.send({
+			status: "error",
+			message: "oops!something went wrong"
+		})
+	}
+})
 export default router;
