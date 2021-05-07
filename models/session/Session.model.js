@@ -20,11 +20,12 @@ export const getAccessJwtByToken = async accessJWT => {
 	}
 };
 
-export const deleteAccessJwtByUserId =  userId => {
+export const deleteAccessJwtByUserId = userId => {
+	console.log("from d a ", userId);
 	try {
-		const result =  SessionSchema.findOneAndDelete( userId)
-		.then(data=>console.log(data))
-		.catch(error=> console.log(error))
+		SessionSchema.findOneAndDelete(userId)
+			.then(data => {})
+			.catch(error => console.log(error));
 	} catch (error) {
 		console.log(error);
 	}

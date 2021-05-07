@@ -1,3 +1,4 @@
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -16,13 +17,15 @@ app.use(morgan("tiny"));
 const __dirname = path.resolve();
 app.use(express.static(path.join(__dirname, "public")));
 
-// parse application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: false }));
-// parse application/json
+
 app.use(express.json());
 
-import mongoClient from "../e-commerce-admin-api/config/db.js";
+import mongoClient from "./config/db.js";
 mongoClient();
+
+//Auth middleware
+import { userAuthorization } from "./middlewares/authorization.middleware.js";
 
 // LOAD ROUTERS
 import loginRouter from "./routers/login.router.js";
@@ -33,8 +36,8 @@ import tokenRouter from "./routers/token.router.js";
 //USE APIS
 app.use("/api/v1/login", loginRouter);
 app.use("/api/v1/user", userRouter);
-app.use("/api/v1/category", categoryRouter);
-app.use("/api/v1/product", productRouter);
+app.use("/api/v1/category", userAuthorization, categoryRouter);
+app.use("/api/v1/product", userAuthorization, productRouter);
 app.use("/api/v1/token", tokenRouter);
 
 app.get("/", (req, res) => {
@@ -51,7 +54,7 @@ app.use((req, res, next) => {
 });
 
 //handle error
-import { handleError } from "../e-commerce-admin-api/utils/errorHandler.js";
+import { handleError } from "./utils/errorHandler.js";
 app.use((error, req, res, next) => {
 	handleError(error, res);
 });
@@ -59,5 +62,5 @@ app.use((error, req, res, next) => {
 app.listen(PORT, error => {
 	if (error) console.log(error);
 
-	console.log(`Server is running at http://localhost:${PORT}`);
+	console.log(`Server is runn at http://localhost:${PORT}`);
 });
